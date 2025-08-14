@@ -63,108 +63,19 @@
   </div>
 
   <script>
-    // 공통: 이미지 품질 파라미터 + 로딩 실패 시 대체 이미지
-    const IMG_SUFFIX = "?auto=format&fit=crop&w=1600&q=80";
-    const FALLBACK_IMG = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528" + IMG_SUFFIX;
+    // ===== 이미지 세팅 공통 =====
+    const FALLBACK_IMG = "https://source.unsplash.com/1600x900/?wine,cellar&sig=9999";
 
-    // 주제별로 어울리는 이미지(Unsplash 고정 ID)로 교체
+    // ===== 기사 데이터 (25개) — 실제 상세 URL + 주제별 이미지 키워드 =====
     const wineNews = [
-      { title:"We Asked 18 Sommeliers: What’s the Most Overrated Red Wine? (2025)", source:"VinePair", excerpt:"18명의 소믈리에가 말하는 과대평가된 레드 와인은?", url:"https://vinepair.com/articles/wa-somms-most-overrated-red-wine-2025/", image:"https://images.unsplash.com/photo-1524592937423-1f4f0c2f9c54" + IMG_SUFFIX },
-      { title:"French harvest 2025: Volumes to jump as Burgundy, Champagne recover", source:"Decanter", excerpt:"부르고뉴·샹파뉴 수확량 회복 전망… 프랑스 전체 생산량 증가 예측.", url:"https://www.decanter.com/wine-news/french-harvest-2025-volumes-to-jump-as-burgundy-champagne-recover-562775/", image:"https://images.unsplash.com/photo-1518481612222-68bbe828ecd1" + IMG_SUFFIX },
-      { title:"Wine Shipping Battle Drags On", source:"Wine-Searcher", excerpt:"미국 소매 와인 배송 자유화, 다시 제동이 걸리다.", url:"https://www.wine-searcher.com/m/2025/08/wine-shipping-battle-drags-on", image:"https://images.unsplash.com/photo-1510627498534-cf7e9002facc" + IMG_SUFFIX },
-      { title:"US wine trends 2025: Premiumisation dominates as volume drops", source:"The Drinks Business", excerpt:"미국 와인 시장, 프리미엄화는 지속… 볼륨은 하락세.", url:"https://www.thedrinksbusiness.com/2025/08/us-wine-trends-2025-premiumisation-dominates-as-volume-drops/", image:"https://images.unsplash.com/photo-1509057199576-632a47484ece" + IMG_SUFFIX },
-      { title:"Decanter World Wine Awards 2025 results revealed", source:"Decanter", excerpt:"DWWA 2025 결과 공개: Best in Show 50개 등 기록 갱신.", url:"https://www.decanter.com/wine-news/decanter-world-wine-awards-2025-results-revealed-558898/", image:"https://images.unsplash.com/photo-1544701458-3a3595730f49" + IMG_SUFFIX },
-      { title:"The Most Wanted Wines of 2025", source:"Wine-Searcher", excerpt:"2025년 전 세계에서 가장 많이 검색된 와인 Top 10.", url:"https://www.wine-searcher.com/m/2025/05/the-most-wanted-wines-of-2025", image:"https://images.unsplash.com/photo-1497997092403-f091fcf5bdaa" + IMG_SUFFIX },
-      { title:"Which fine wines have performed best so far in 2025?", source:"The Drinks Business", excerpt:"2025년 상반기 최고의 퍼포먼스를 보인 파인 와인은?", url:"https://www.thedrinksbusiness.com/2025/08/which-fine-wines-have-performed-best-so-far-in-2025/", image:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528" + IMG_SUFFIX },
-      { title:"We Asked 14 Wine Pros: What’s Your Go-To Summer Wine? (2025)", source:"VinePair", excerpt:"여름엔 어떤 와인을? 14명의 와인 프로가 추천하는 한 병.", url:"https://vinepair.com/articles/wa-wne-pros-wine-of-the-summer-2025/", image:"https://images.unsplash.com/photo-1509358271058-acd22cc93898" + IMG_SUFFIX },
-      { title:"Napa Valley's Thriving Family Affairs", source:"Wine-Searcher", excerpt:"대기업의 공세 속에서도 살아남는 나파의 가족 경영 와이너리들.", url:"https://www.wine-searcher.com/m/2025/08/napa-valleys-thriving-family-affairs", image:"https://images.unsplash.com/photo-1467810563316-b5476525c0f9" + IMG_SUFFIX },
-      { title:"Top 10 white wine trends of 2025", source:"The Drinks Business", excerpt:"2025년 화이트 와인 트렌드 10가지.", url:"https://www.thedrinksbusiness.com/2025/08/top-10-white-wine-trends-of-2025/", image:"https://images.unsplash.com/photo-1467003909585-2f8a72700288" + IMG_SUFFIX },
-      { title:"Decanter magazine August 2025: See what’s inside", source:"Decanter", excerpt:"데칸터 8월호: 알바리뇨 트렌드, 끼안티 클래시코 최신 릴리즈 등.", url:"https://www.decanter.com/wine-news/decanter-magazine-august-2025-see-whats-inside-561654/", image:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21" + IMG_SUFFIX },
-      { title:"The Most Expensive Syrahs of 2025", source:"Wine-Searcher", excerpt:"2025년 가장 비싼 시라/시라즈는 어디에서 나왔나?", url:"https://www.wine-searcher.com/m/2025/08/the-most-expensive-syrahs-of-2025", image:"https://images.unsplash.com/photo-1541701494587-cb58502866ab" + IMG_SUFFIX },
-      { title:"All the medallists from the Global Orange Wine Masters 2025", source:"The Drinks Business", excerpt:"2025 글로벌 오렌지 와인 마스터스 메달 수상작 총정리.", url:"https://www.thedrinksbusiness.com/2025/08/all-the-medallists-from-the-global-orange-wine-masters-2025/", image:"https://images.unsplash.com/photo-1578662996442-48f60103fc96" + IMG_SUFFIX },
-      { title:"15 Winemakers to Watch in 2025", source:"VinePair", excerpt:"올해 주목해야 할 떠오르는 15인의 와인메이커.", url:"https://vinepair.com/articles/winemakers-to-watch-in-2025/", image:"https://images.unsplash.com/photo-1528821154947-1aa3d1e54ac7" + IMG_SUFFIX },
-      { title:"25 American Wines to Drink This Fourth of July (2025)", source:"VinePair", excerpt:"미국 독립기념일을 위한 추천 미국 와인 25선.", url:"https://vinepair.com/buy-this-booze/btb-best-american-wines-fourth-of-july-2025/", image:"https://images.unsplash.com/photo-1553361730-697a3662b7a7" + IMG_SUFFIX },
-      { title:"BCB announces updates for 2025 show (와인 주제 세션 포함)", source:"Drinks International", excerpt:"BCB 2025, 와인 주제 세션 강화 등 프로그램 업데이트.", url:"https://drinksint.com/news/fullstory.php/aid/11898/BCB_announces_updates_for_2025_show.html", image:"https://images.unsplash.com/photo-1519676867240-f03562e64548" + IMG_SUFFIX },
-      { title:"Barcelona Wine Week sees 30% growth in 2025", source:"Drinks International", excerpt:"바르셀로나 와인 위크, 전시 규모·참가 수 30% 증가.", url:"https://drinksint.com/news/fullstory.php/aid/11591/Barcelona_Wine_Week_sees_30_25_growth_in_2025.html", image:"https://images.unsplash.com/photo-1532634896-26909d0d4b6a" + IMG_SUFFIX },
-      { title:"Tariffs on EU wine and spirits could result in $2bn in lost sales", source:"Drinks International", excerpt:"EU 와인·주류 관세 시 매출 20억 달러 손실 우려.", url:"https://drinksint.com/news/fullstory.php/aid/11900/Tariffs_on_EU_wine_and_spirits_could_result_in_%242_billion_in_lost_sales.html", image:"https://images.unsplash.com/photo-1475441627437-6887d61b6f87" + IMG_SUFFIX },
-      { title:"Treasury Wine Estates sees profits rise as Penfolds expands in China", source:"Drinks International", excerpt:"중국에서 Penfolds 성장에 힘입어 TWE 실적 개선.", url:"https://drinksint.com/news/fullstory.php/aid/11904/Treasury_Wine_Estates_sees_profits_rise_as_Penfolds_expands_in_China.html", image:"https://images.unsplash.com/photo-1612283665384-4c09b7ee0d70" + IMG_SUFFIX },
-      { title:"Black Chalk predicts production could double in boom 2025 harvest", source:"Harpers", excerpt:"영국 블랙 초크, 2025 대풍작으로 생산량 2배 전망.", url:"https://harpers.co.uk/news/fullstory.php/aid/34547/Black_Chalk_predicts_production_could_double_in_boom_2025_harvest.html", image:"https://images.unsplash.com/photo-1444724334165-0b7eb0f916eb" + IMG_SUFFIX },
-      { title:"Sommelier Wine Awards 2025 results", source:"Harpers", excerpt:"SWA 2025 결과: 영국 온트레이드 중심의 수상작 발표.", url:"https://harpers.co.uk/news/fullstory.php/aid/34327/Sommelier_Wine_Awards_2025_results.html", image:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30" + IMG_SUFFIX },
-      { title:"English Wine Week returns with packed 2025 campaign", source:"Harpers", excerpt:"English Wine Week, 사상 최다 소비자 행사로 복귀.", url:"https://harpers.co.uk/news/fullstory.php/aid/34332/English_Wine_Week_returns_with_packed_2025_campaign.html", image:"https://images.unsplash.com/photo-1523362628745-0c100150bdee" + IMG_SUFFIX },
-      { title:"ProWein 2025 organisers bullish despite fall in visitors", source:"Harpers", excerpt:"방문객 감소에도 프로바인 2025 주최 측은 낙관적.", url:"https://harpers.co.uk/news/fullstory.php/aid/33968/ProWein_2025_organisers_bullish_despite_fall_in_visitors.html", image:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" + IMG_SUFFIX },
-      { title:"Viña Concha y Toro says 2025 vintage among best of the decade", source:"Harpers", excerpt:"비냐 콘차이토로, 2025 빈티지 '10년 중 최고 수준' 평가.", url:"https://harpers.co.uk/news/fullstory.php/aid/34141/Vi_F1a_Concha_y_Toro_says_2025_vintage_among_best_of_the_decade.html", image:"https://images.unsplash.com/photo-1535379453347-1ffd615e2e08" + IMG_SUFFIX }
-    ];
-
-    // 유틸
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => document.querySelectorAll(sel);
-
-    function updateLastUpdateTime(){
-      const now = new Date();
-      const fmt = now.toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-      $('#lastUpdate').textContent = `마지막 업데이트: ${fmt}`;
-    }
-
-    // publishedAt 없으면 지금부터 3분 간격으로 생성(최신순 보장용)
-    function ensurePublishedDates(list){
-      const now = Date.now();
-      return list.map((item, idx) => ({
-        ...item,
-        publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString() : new Date(now - idx*3*60*1000).toISOString(),
-        readCount: item.readCount || (Math.floor(Math.random()*12000)+3000).toLocaleString('ko-KR')
-      }));
-    }
-
-    function sortByLatest(list){ return [...list].sort((a,b)=> new Date(b.publishedAt) - new Date(a.publishedAt)); }
-
-    function getHM(dateISO){
-      return new Date(dateISO).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-    }
-
-    function cardHTML(n){
-      return `
-      <div class="news-card" data-article-url="${n.url}" role="button" tabindex="0" aria-label="기사로 이동: ${n.title.replace(/"/g,'&quot;')}">
-        <div class="news-image">
-          <img src="${n.image}" alt="${n.title.replace(/"/g,'&quot;')}" loading="lazy" decoding="async"
-               onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" referrerpolicy="no-referrer">
-        </div>
-        <div class="news-content">
-          <span class="news-source">${n.source}</span>
-          <h3 class="news-title">${n.title}</h3>
-          <p class="news-excerpt">${n.excerpt}</p>
-          <div class="news-meta">
-            <span class="read-count"><i class="fas fa-eye"></i>${n.readCount} 읽음</span>
-            <span>${getHM(n.publishedAt)}</span>
-          </div>
-        </div>
-      </div>`;
-    }
-
-    function attachHandlers(){
-      $$('.news-card').forEach(card=>{
-        const url = card.getAttribute('data-article-url');
-        const open = () => { if (url && /^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener,noreferrer'); };
-        card.addEventListener('click', open);
-        card.addEventListener('keydown', (e)=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); open(); } });
-      });
-    }
-
-    function render(data){
-      $('#newsContainer').innerHTML = data.map(cardHTML).join('');
-      attachHandlers();
-    }
-
-    // 초기화 + 30분 갱신
-    let data = sortByLatest(ensurePublishedDates(wineNews));
-    function refresh(){
-      data = sortByLatest(ensurePublishedDates(wineNews));
-      render(data); updateLastUpdateTime();
-    }
-
-    document.addEventListener('DOMContentLoaded', ()=>{
-      refresh();
-      setInterval(refresh, 30*60*1000);
-    });
-  </script>
-</body>
-</html>
+      { title:"We Asked 18 Sommeliers: What’s the Most Overrated Red Wine? (2025)", source:"VinePair", excerpt:"18명의 소믈리에가 말하는 과대평가된 레드 와인은?", url:"https://vinepair.com/articles/wa-somms-most-overrated-red-wine-2025/", imageTopic:"red wine glass sommelier", publishedAt:"2025-08-14T10:20:00+09:00" },
+      { title:"French harvest 2025: Volumes to jump as Burgundy, Champagne recover", source:"Decanter", excerpt:"부르고뉴·샹파뉴 수확량 회복 전망… 프랑스 전체 생산량 증가 예측.", url:"https://www.decanter.com/wine-news/french-harvest-2025-volumes-to-jump-as-burgundy-champagne-recover-562775/", imageTopic:"grape harvest burgundy france", publishedAt:"2025-08-14T10:15:00+09:00" },
+      { title:"Wine Shipping Battle Drags On", source:"Wine-Searcher", excerpt:"미국 소매 와인 배송 자유화, 다시 제동이 걸리다.", url:"https://www.wine-searcher.com/m/2025/08/wine-shipping-battle-drags-on", imageTopic:"wine shipping boxes logistics", publishedAt:"2025-08-14T10:12:00+09:00" },
+      { title:"US wine trends 2025: Premiumisation dominates as volume drops", source:"The Drinks Business", excerpt:"미국 와인 시장, 프리미엄화는 지속… 볼륨은 하락세.", url:"https://www.thedrinksbusiness.com/2025/08/us-wine-trends-2025-premiumisation-dominates-as-volume-drops/", imageTopic:"premium wine shelf bottle", publishedAt:"2025-08-14T10:09:00+09:00" },
+      { title:"Decanter World Wine Awards 2025 results revealed", source:"Decanter", excerpt:"DWWA 2025 결과 공개: Best in Show 50개 등 기록 갱신.", url:"https://www.decanter.com/wine-news/decanter-world-wine-awards-2025-results-revealed-558898/", imageTopic:"wine awards judging tasting", publishedAt:"2025-08-14T10:06:00+09:00" },
+      { title:"The Most Wanted Wines of 2025", source:"Wine-Searcher", excerpt:"2025년 전 세계에서 가장 많이 검색된 와인 Top 10.", url:"https://www.wine-searcher.com/m/2025/05/the-most-wanted-wines-of-2025", imageTopic:"iconic wine bottles lineup", publishedAt:"2025-08-14T10:03:00+09:00" },
+      { title:"Which fine wines have performed best so far in 2025?", source:"The Drinks Business", excerpt:"2025년 상반기 최고의 퍼포먼스를 보인 파인 와인은?", url:"https://www.thedrinksbusiness.com/2025/08/which-fine-wines-have-performed-best-so-far-in-2025/", imageTopic:"fine wine cellar collection", publishedAt:"2025-08-14T10:00:00+09:00" },
+      { title:"We Asked 14 Wine Pros: What’s Your Go-To Summer Wine? (2025)", source:"VinePair", excerpt:"여름엔 어떤 와인을? 14명의 와인 프로가 추천하는 한 병.", url:"https://vinepair.com/articles/wa-wne-pros-wine-of-the-summer-2025/", imageTopic:"rose wine summer terrace", publishedAt:"2025-08-14T09:57:00+09:00" },
+      { title:"Napa Valley's Thriving Family Affairs", source:"Wine-Searcher", excerpt:"대기업 공세 속 살아남는 나파의 가족 경영 와이너리.", url:"https://www.wine-searcher.com/m/2025/08/napa-valleys-thriving-family-affairs", imageTopic:"napa valley vineyard sunset", publishedAt:"2025-08-14T09:54:00+09:00" },
+      { title:"Top 10 white wine trends of 2025", source:"The Drinks Business", excerpt:"2025년 화이트 와인 트렌드 10가지.", url:"https://www.thedrinksbusiness.com/2025/08/top-10-white-wine-trends-of-2025/", imageTopic:"white wine glass crisp", publishedAt:"2025-08-14T09:51:00+09:00" },
+      { title:"Decanter magazine August 2025: See what’s inside", source:"Decanter", excerpt:"데칸터 8월호: 알바리뇨·끼안티 클래시코 등.", url:"https://www.decanter.com/wine-news/decanter-magazine-august-2025-see-whats-inside-561654/", imageTop
