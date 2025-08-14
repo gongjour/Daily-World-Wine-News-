@@ -1,9 +1,7 @@
-<script>
-  // ▶︎ 1) 기사 데이터 (url은 기사 원문 링크, image가 없을 경우 도메인별 기본 이미지 사용)
-  const wineNews = [
+  const wineNews = window.wineNews || [
     {
       title: "2024년 보르도 와인 가격, 역사적 상승세 기록",
-      excerpt: "프랑스 보르도 지역의 2024년 와인 가격이 역사적 상승세를 보이며, 특히 퍼스트 그로우 와인들의 가격이 급등하고 있습니다. 전문가들은 기후 변화와 수요 증가를 주요 원인으로 분석하고 있습니다.",
+      excerpt: "프랑스 보르도 지역의 2024년 와인 가격이 역사적 상승세…",
       source: "Wine Spectator",
       readCount: "15,420",
       image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80",
@@ -11,16 +9,16 @@
     },
     {
       title: "이탈리아 토스카나, 유기농 와인 생산 비율 40% 돌파",
-      excerpt: "이탈리아 토스카나 지역에서 유기농 와인 생산 비율이 처음으로 40%를 돌파했습니다. 환경 친화적 농법에 대한 소비자들의 관심 증가와 EU 정책 지원이 주요 요인으로 작용했습니다.",
+      excerpt: "이탈리아 토스카나 지역에서 유기농 와인 생산 비율이 40%…",
       source: "Decanter",
       readCount: "12,890",
       image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?auto=format&fit=crop&w=1200&q=80",
       url: "https://www.decanter.com/wine-news/tuscany-organic-wine-production-40-percent"
-    },
-    // … 생략: 기존 항목 그대로 사용 (image가 없으면 빈 값으로 두어도 됩니다)
+    }
   ];
 
-  // ▶︎ 도메인별 기본 이미지(해당 기사에 image가 없을 때 사용)
+  // ─────────────────────────────────────────────────────────────
+  // 도메인별 기본 이미지(기사 image 없을 때 사용)
   const fallbackImagesByDomain = {
     "winespectator.com": "https://images.unsplash.com/photo-1524592937423-1f4f0c2f9c54?auto=format&fit=crop&w=1200&q=80",
     "decanter.com": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
@@ -33,121 +31,122 @@
     "guide.michelin.com": "https://images.unsplash.com/photo-1509057199576-632a47484ece?auto=format&fit=crop&w=1200&q=80"
   };
 
-  // ▶︎ 도메인 추출 및 홈페이지(오리진) 구하는 함수
   function getHomepage(url) {
     try {
       const u = new URL(url);
-      return u.origin; // 예: https://www.decanter.com
-    } catch (e) {
+      return u.origin;
+    } catch {
       return "#";
     }
   }
 
-  // ▶︎ 이미지 선택: 기사 개별 image → 없으면 도메인별 기본 이미지
   function pickImage(news) {
     if (news.image && news.image.trim()) return news.image;
     try {
       const domain = new URL(news.url).hostname.replace(/^www\./, "");
       if (fallbackImagesByDomain[domain]) return fallbackImagesByDomain[domain];
-    } catch (e) {}
-    // 최후의 기본 이미지
+    } catch {}
     return "https://images.unsplash.com/photo-1524592937423-1f4f0c2f9c54?auto=format&fit=crop&w=1200&q=80";
   }
 
-  // ▶︎ 뉴스 카드 템플릿
+  // ★★★ 중첩 <a> 제거: 카드 자체는 div로 두고 JS로 클릭 이동
   function createNewsCard(news) {
     const homepage = getHomepage(news.url || "#");
     const imgUrl = pickImage(news);
 
-    // 카드 전체 클릭 시 기사로 이동하도록 <a>로 감싸고,
-    // 소스 배지(동그란 라벨)는 '홈페이지'로 연결되게 함
     return `
-      <div class="news-card">
-        <a href="${news.url || '#'}" target="_blank" rel="noopener noreferrer">
-          <div class="news-image" style="background-image: url('${imgUrl}')">
-            <i class="fas fa-wine-glass-alt"></i>
+      <div class="news-card" data-url="${news.url || "#"}" role="button" tabindex="0" aria-label="기사로 이동: ${news.title}">
+        <div class="news-image" style="background-image: url('${imgUrl}')">
+          <i class="fas fa-wine-glass-alt"></i>
+        </div>
+        <div class="news-content">
+          <span class="news-source">
+            <a class="source-link" href="${homepage}" target="_blank" rel="noopener noreferrer" style="color:#fff;text-decoration:none;">
+              ${news.source} 홈페이지
+            </a>
+          </span>
+          <h3 class="news-title">${news.title}</h3>
+          <p class="news-excerpt">${news.excerpt}</p>
+          <div class="news-meta">
+            <span class="read-count"><i class="fas fa-eye"></i> ${news.readCount} 읽음</span>
+            <span>${getRandomTime()}</span>
           </div>
-          <div class="news-content">
-            <span class="news-source">
-              <a href="${homepage}" target="_blank" rel="noopener noreferrer" style="color:#fff;text-decoration:none;">
-                ${news.source} 홈페이지
-              </a>
-            </span>
-            <h3 class="news-title">${news.title}</h3>
-            <p class="news-excerpt">${news.excerpt}</p>
-            <div class="news-meta">
-              <span class="read-count">
-                <i class="fas fa-eye"></i>
-                ${news.readCount} 읽음
-              </span>
-              <span>${getRandomTime()}</span>
-            </div>
-          </div>
-        </a>
+        </div>
       </div>
     `;
   }
 
-  // 랜덤 시간 표시(디자인용)
   function getRandomTime() {
-    const hours = Math.floor(Math.random() * 24);
-    const minutes = Math.floor(Math.random() * 60);
-    return `${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2,"0")}`;
+    const h = Math.floor(Math.random() * 24);
+    const m = Math.floor(Math.random() * 60);
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
   }
 
-  // 마지막 업데이트 시간 표시
   function updateLastUpdateTime() {
     const now = new Date();
     const timeString = now.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
     });
     const el = document.getElementById('lastUpdate');
     if (el) el.textContent = `마지막 업데이트: ${timeString}`;
   }
 
-  // 간단한 인기 순 정렬(읽음 수 내림차순) + 표시
   function displayNews() {
     const container = document.getElementById('newsContainer');
     if (!container) return;
 
-    // 숫자 비교를 위해 readCount에서 콤마 제거
+    if (!Array.isArray(wineNews) || wineNews.length === 0) {
+      container.innerHTML = `
+        <div class="loading">
+          <p>표시할 뉴스가 없습니다. wineNews 배열을 확인하세요.</p>
+        </div>`;
+      return;
+    }
+
     const sorted = [...wineNews].sort((a, b) => {
-      const an = Number(String(a.readCount).replace(/,/g, ""));
-      const bn = Number(String(b.readCount).replace(/,/g, ""));
+      const an = Number(String(a.readCount || "0").replace(/,/g, ""));
+      const bn = Number(String(b.readCount || "0").replace(/,/g, ""));
       return bn - an;
     });
 
-    container.innerHTML = "";
-    sorted.forEach(news => {
-      container.innerHTML += createNewsCard(news);
+    container.innerHTML = sorted.map(createNewsCard).join("");
+
+    // 카드 클릭 이벤트(캡처링/버블링 최소화)
+    container.querySelectorAll(".news-card").forEach(card => {
+      const url = card.getAttribute("data-url");
+      card.addEventListener("click", () => {
+        if (url && url !== "#") window.open(url, "_blank", "noopener");
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          if (url && url !== "#") window.open(url, "_blank", "noopener");
+        }
+      });
+    });
+
+    // 소스 링크 클릭 시 카드 클릭 전파 막기
+    container.querySelectorAll(".source-link").forEach(link => {
+      link.addEventListener("click", (e) => e.stopPropagation());
     });
   }
 
-  // 새로고침 없이 "업데이트" 느낌 주기: 읽음수/순서 약간 섞기
   function refreshNews() {
-    // 읽음수에 약간의 변동(연출용)
     wineNews.forEach(item => {
-      const base = Number(String(item.readCount).replace(/,/g, "")) || 0;
-      const delta = Math.floor(Math.random() * 200); // 0~199 증가
+      const base = Number(String(item.readCount || "0").replace(/,/g, "")) || 0;
+      const delta = Math.floor(Math.random() * 200);
       item.readCount = (base + delta).toLocaleString("ko-KR");
     });
     updateLastUpdateTime();
     displayNews();
   }
 
-  // 페이지 로드 시 실행
   document.addEventListener("DOMContentLoaded", function() {
     updateLastUpdateTime();
     displayNews();
 
-    // ▶︎ 3) 자동 업데이트: 30분(1,800,000ms)마다 새로고침
-    // 실제로는 이 자리에서 API 호출 → wineNews 교체 후 displayNews() 호출 권장
-    setInterval(() => {
-      refreshNews();
-    }, 1800000);
+    // 30분마다 자동 업데이트
+    setInterval(refreshNews, 1800000);
   });
 </script>
