@@ -477,4 +477,12 @@
       displayNews();
     }
 
-    // 초기 실
+    // 초기 실행
+    document.addEventListener("DOMContentLoaded", () => {
+      updateLastUpdateTime();
+      displayNews();
+      setInterval(refreshNews, 1800000); // 30분
+    });
+  </script>
+</body>
+</html>
