@@ -1,584 +1,153 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>세계 와인 뉴스 - Wine News Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<script>
+  // ▶︎ 1) 기사 데이터 (url은 기사 원문 링크, image가 없을 경우 도메인별 기본 이미지 사용)
+  const wineNews = [
+    {
+      title: "2024년 보르도 와인 가격, 역사적 상승세 기록",
+      excerpt: "프랑스 보르도 지역의 2024년 와인 가격이 역사적 상승세를 보이며, 특히 퍼스트 그로우 와인들의 가격이 급등하고 있습니다. 전문가들은 기후 변화와 수요 증가를 주요 원인으로 분석하고 있습니다.",
+      source: "Wine Spectator",
+      readCount: "15,420",
+      image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80",
+      url: "https://www.winespectator.com/articles/bordeaux-2024-prices-historic-rise"
+    },
+    {
+      title: "이탈리아 토스카나, 유기농 와인 생산 비율 40% 돌파",
+      excerpt: "이탈리아 토스카나 지역에서 유기농 와인 생산 비율이 처음으로 40%를 돌파했습니다. 환경 친화적 농법에 대한 소비자들의 관심 증가와 EU 정책 지원이 주요 요인으로 작용했습니다.",
+      source: "Decanter",
+      readCount: "12,890",
+      image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?auto=format&fit=crop&w=1200&q=80",
+      url: "https://www.decanter.com/wine-news/tuscany-organic-wine-production-40-percent"
+    },
+    // … 생략: 기존 항목 그대로 사용 (image가 없으면 빈 값으로 두어도 됩니다)
+  ];
 
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: #ffffff;
-            min-height: 100vh;
-            color: #1a1a1a;
-            line-height: 1.6;
-        }
+  // ▶︎ 도메인별 기본 이미지(해당 기사에 image가 없을 때 사용)
+  const fallbackImagesByDomain = {
+    "winespectator.com": "https://images.unsplash.com/photo-1524592937423-1f4f0c2f9c54?auto=format&fit=crop&w=1200&q=80",
+    "decanter.com": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
+    "thedrinksbusiness.com": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=1200&q=80",
+    "robertparker.com": "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?auto=format&fit=crop&w=1200&q=80",
+    "jamessuckling.com": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80",
+    "jancisrobinson.com": "https://images.unsplash.com/photo-1528821154947-1aa3d1d43c66?auto=format&fit=crop&w=1200&q=80",
+    "burghound.com": "https://images.unsplash.com/photo-1528820600400-78fcdfe2a8da?auto=format&fit=crop&w=1200&q=80",
+    "gamberorossointernational.com": "https://images.unsplash.com/photo-1500904151862-8596f1d05eff?auto=format&fit=crop&w=1200&q=80",
+    "guide.michelin.com": "https://images.unsplash.com/photo-1509057199576-632a47484ece?auto=format&fit=crop&w=1200&q=80"
+  };
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  // ▶︎ 도메인 추출 및 홈페이지(오리진) 구하는 함수
+  function getHomepage(url) {
+    try {
+      const u = new URL(url);
+      return u.origin; // 예: https://www.decanter.com
+    } catch (e) {
+      return "#";
+    }
+  }
 
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
-            color: #1a1a1a;
-            padding: 40px 0;
-            border-bottom: 2px solid #f0f0f0;
-        }
+  // ▶︎ 이미지 선택: 기사 개별 image → 없으면 도메인별 기본 이미지
+  function pickImage(news) {
+    if (news.image && news.image.trim()) return news.image;
+    try {
+      const domain = new URL(news.url).hostname.replace(/^www\./, "");
+      if (fallbackImagesByDomain[domain]) return fallbackImagesByDomain[domain];
+    } catch (e) {}
+    // 최후의 기본 이미지
+    return "https://images.unsplash.com/photo-1524592937423-1f4f0c2f9c54?auto=format&fit=crop&w=1200&q=80";
+  }
 
-        .header h1 {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
+  // ▶︎ 뉴스 카드 템플릿
+  function createNewsCard(news) {
+    const homepage = getHomepage(news.url || "#");
+    const imgUrl = pickImage(news);
 
-        .header h1 i {
-            color: #8B0000;
-            margin-right: 15px;
-        }
-
-        .header p {
-            font-size: 1.3rem;
-            color: #666;
-            font-weight: 300;
-        }
-
-        .update-info {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 40px;
-            text-align: center;
-            color: #1a1a1a;
-            border-left: 4px solid #8B0000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-
-        .news-card {
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            position: relative;
-            border: 1px solid #f0f0f0;
-            cursor: pointer;
-        }
-
-        .news-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(139,0,0,0.15);
-            border-color: #8B0000;
-        }
-
-        .news-card a {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .news-image {
-            width: 100%;
-            height: 220px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-size: 3.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .news-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, rgba(139,0,0,0.4), rgba(0,0,0,0.3));
-            opacity: 0.7;
-            transition: opacity 0.3s ease;
-        }
-
-        .news-card:hover .news-image::before {
-            opacity: 0.3;
-        }
-
-        .news-content {
-            padding: 25px;
-        }
-
-        .news-source {
-            display: inline-block;
-            background: #8B0000;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 25px;
-            font-size: 0.8rem;
-            margin-bottom: 15px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        .news-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            line-height: 1.4;
-            color: #1a1a1a;
-            transition: color 0.3s ease;
-        }
-
-        .news-card:hover .news-title {
-            color: #8B0000;
-        }
-
-        .news-excerpt {
-            color: #555;
-            line-height: 1.7;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-
-        .news-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #777;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .read-count {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #8B0000;
-            font-weight: 500;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #1a1a1a;
-            font-size: 1.2rem;
-        }
-
-        .spinner {
-            border: 4px solid #f0f0f0;
-            border-top: 4px solid #8B0000;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 25px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .footer {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            background: #f8f9fa;
-            border-top: 1px solid #f0f0f0;
-            margin-top: 50px;
-        }
-
-        .footer p {
-            font-size: 0.95rem;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5rem;
-            }
-            
-            .header p {
-                font-size: 1.1rem;
-            }
-            
-            .news-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            .news-card {
-                border-radius: 12px;
-            }
-            
-            .news-content {
-                padding: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-wine-glass-alt"></i> 세계 와인 뉴스</h1>
-            <p>세계 최고의 와인 전문 매체에서 선별된 최신 뉴스</p>
-        </div>
-
-        <div class="update-info">
-            <i class="fas fa-clock"></i>
-            <span id="lastUpdate">마지막 업데이트: 로딩 중...</span>
-            <br>
-            <small>1시간마다 인기 기사로 업데이트됩니다</small>
-        </div>
-
-        <div id="newsContainer" class="news-grid">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>최신 와인 뉴스를 불러오는 중...</p>
+    // 카드 전체 클릭 시 기사로 이동하도록 <a>로 감싸고,
+    // 소스 배지(동그란 라벨)는 '홈페이지'로 연결되게 함
+    return `
+      <div class="news-card">
+        <a href="${news.url || '#'}" target="_blank" rel="noopener noreferrer">
+          <div class="news-image" style="background-image: url('${imgUrl}')">
+            <i class="fas fa-wine-glass-alt"></i>
+          </div>
+          <div class="news-content">
+            <span class="news-source">
+              <a href="${homepage}" target="_blank" rel="noopener noreferrer" style="color:#fff;text-decoration:none;">
+                ${news.source} 홈페이지
+              </a>
+            </span>
+            <h3 class="news-title">${news.title}</h3>
+            <p class="news-excerpt">${news.excerpt}</p>
+            <div class="news-meta">
+              <span class="read-count">
+                <i class="fas fa-eye"></i>
+                ${news.readCount} 읽음
+              </span>
+              <span>${getRandomTime()}</span>
             </div>
-        </div>
-    </div>
+          </div>
+        </a>
+      </div>
+    `;
+  }
 
-    <div class="footer">
-        <p>&copy; 2024 세계 와인 뉴스 허브 | 최고의 와인 전문 매체에서 선별된 뉴스</p>
-    </div>
+  // 랜덤 시간 표시(디자인용)
+  function getRandomTime() {
+    const hours = Math.floor(Math.random() * 24);
+    const minutes = Math.floor(Math.random() * 60);
+    return `${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2,"0")}`;
+  }
 
-    <script>
-        // 와인 뉴스 데이터 (실제로는 API에서 가져올 데이터)
-        const wineNews = [
-            {
-                title: "2024년 보르도 와인 가격, 역사적 상승세 기록",
-                excerpt: "프랑스 보르도 지역의 2024년 와인 가격이 역사적 상승세를 보이며, 특히 퍼스트 그로우 와인들의 가격이 급등하고 있습니다. 전문가들은 기후 변화와 수요 증가를 주요 원인으로 분석하고 있습니다.",
-                source: "Wine Spectator",
-                readCount: "15,420",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.winespectator.com/articles/bordeaux-2024-prices-historic-rise"
-            },
-            {
-                title: "이탈리아 토스카나, 유기농 와인 생산 비율 40% 돌파",
-                excerpt: "이탈리아 토스카나 지역에서 유기농 와인 생산 비율이 처음으로 40%를 돌파했습니다. 환경 친화적 농법에 대한 소비자들의 관심 증가와 EU 정책 지원이 주요 요인으로 작용했습니다.",
-                source: "Decanter",
-                readCount: "12,890",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.decanter.com/wine-news/tuscany-organic-wine-production-40-percent"
-            },
-            {
-                title: "새로운 와인 스타일 '오렌지 와인' 글로벌 인기 상승",
-                excerpt: "피부를 벗기지 않은 포도로 만드는 오렌지 와인이 전 세계적으로 인기를 얻고 있습니다. 특히 젊은 소비자층을 중심으로 자연주의 와인에 대한 관심이 높아지고 있습니다.",
-                source: "The Drinks Business",
-                readCount: "18,650",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.thedrinksbusiness.com/2024/01/orange-wine-global-popularity-rise"
-            },
-            {
-                title: "캘리포니아 와인 산업, 기후 변화 대응 기술 혁신",
-                excerpt: "캘리포니아 와인 산업이 기후 변화에 대응하기 위한 혁신적인 기술을 도입하고 있습니다. 스마트 농업 기술과 새로운 포도 품종 개발로 지속가능한 와인 생산을 추구하고 있습니다.",
-                source: "Robert Parker",
-                readCount: "14,230",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.robertparker.com/news/california-wine-climate-change-innovation"
-            },
-            {
-                title: "아시아 와인 시장, 프리미엄 와인 수요 급증",
-                excerpt: "중국, 일본, 한국을 중심으로 한 아시아 와인 시장에서 프리미엄 와인에 대한 수요가 급증하고 있습니다. 특히 보르도와 부르고뉴의 고급 와인들이 인기를 얻고 있습니다.",
-                source: "James Suckling",
-                readCount: "16,780",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jamessuckling.com/wine-news/asia-premium-wine-demand-surge"
-            },
-            {
-                title: "스페인 리오하, 전통과 혁신의 조화로 글로벌 인지도 향상",
-                excerpt: "스페인 리오하 지역의 와인들이 전통적인 방법과 현대적인 기술을 조화롭게 결합하여 글로벌 시장에서 높은 평가를 받고 있습니다. 특히 템프라니요 품종의 잠재력이 재발견되고 있습니다.",
-                source: "Jancis Robinson",
-                readCount: "11,450",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jancisrobinson.com/articles/rioja-tradition-innovation-global-recognition"
-            },
-            {
-                title: "호주 와인, 중국 관세 철회로 새로운 기회 모색",
-                excerpt: "중국 정부의 호주 와인 관세 철회 결정으로 호주 와인 산업이 새로운 활기를 찾고 있습니다. 특히 바롤로와 샤르도네 품종의 수출이 크게 증가할 것으로 예상됩니다.",
-                source: "Burghound",
-                readCount: "13,670",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.burghound.com/news/australia-wine-china-tariff-removal"
-            },
-            {
-                title: "새로운 와인 보관 기술, 와인 품질 향상에 기여",
-                excerpt: "최신 기술을 활용한 와인 보관 시스템이 개발되어 와인의 품질과 보관 기간을 크게 향상시키고 있습니다. 특히 온도와 습도 조절 기술의 발전이 주목받고 있습니다.",
-                source: "Gambero Rosso",
-                readCount: "9,840",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.gamberorossointernational.com/news/wine-storage-technology-quality-improvement"
-            },
-            {
-                title: "프랑스 샹파뉴, 지속가능한 생산 방식으로 전환 가속화",
-                excerpt: "프랑스 샹파뉴 지역의 와인 생산자들이 지속가능한 생산 방식으로의 전환을 가속화하고 있습니다. 유기농 재배와 탄소 중립 목표 달성에 집중하고 있습니다.",
-                source: "Michelin Guide",
-                readCount: "12,340",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://guide.michelin.com/kr/ko/news/champagne-sustainable-production-transition"
-            },
-            {
-                title: "뉴질랜드 와인, 기후 변화 대응으로 새로운 품종 도입",
-                excerpt: "뉴질랜드 와인 산업이 기후 변화에 대응하기 위해 새로운 포도 품종을 도입하고 있습니다. 특히 더운 기후에 적합한 품종들의 재배가 확대되고 있습니다.",
-                source: "Wine Spectator",
-                readCount: "10,890",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.winespectator.com/articles/new-zealand-wine-climate-change-new-varieties"
-            },
-            {
-                title: "독일 와인, 리슬링의 글로벌 부활 주도",
-                excerpt: "독일 와인 산업이 리슬링 품종의 글로벌 부활을 주도하고 있습니다. 특히 드라이 리슬링의 인기가 높아지며, 젊은 소비자층에서 새로운 와인 스타일로 인정받고 있습니다.",
-                source: "Decanter",
-                readCount: "8,760",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.decanter.com/wine-news/germany-riesling-global-revival"
-            },
-            {
-                title: "포르투갈 와인, 포트 와인 외 다채로운 품종으로 다양화",
-                excerpt: "포르투갈 와인 산업이 전통적인 포트 와인 외에도 다양한 테이블 와인으로 시장을 확대하고 있습니다. 토착 품종들의 잠재력을 재발견하여 새로운 와인 스타일을 개발하고 있습니다.",
-                source: "Robert Parker",
-                readCount: "7,890",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.robertparker.com/news/portugal-wine-diversification-beyond-port"
-            },
-            {
-                title: "오스트리아 와인, 그뤼너 벨트너의 글로벌 인지도 향상",
-                excerpt: "오스트리아 와인 산업이 그뤼너 벨트너 품종의 글로벌 인지도를 높이고 있습니다. 특히 미네랄리티가 풍부한 특성으로 와인 애호가들 사이에서 인기를 얻고 있습니다.",
-                source: "James Suckling",
-                readCount: "6,540",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jamessuckling.com/wine-news/austria-gruner-veltliner-global-recognition"
-            },
-            {
-                title: "헝가리 와인, 토카이의 전통 복원과 현대적 해석",
-                excerpt: "헝가리 와인 산업이 전통적인 토카이 와인의 복원과 현대적 해석을 통해 새로운 활기를 찾고 있습니다. 특히 노블 로트 와인의 품질 향상이 주목받고 있습니다.",
-                source: "Jancis Robinson",
-                readCount: "5,670",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jancisrobinson.com/articles/hungary-tokaji-tradition-modern-interpretation"
-            },
-            {
-                title: "그리스 와인, 고대 품종의 현대적 재해석으로 부활",
-                excerpt: "그리스 와인 산업이 고대 품종들을 현대적으로 재해석하여 새로운 와인 스타일을 개발하고 있습니다. 특히 아시르티코와 아기오르기티코 품종이 주목받고 있습니다.",
-                source: "Burghound",
-                readCount: "4,890",
-                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.burghound.com/news/greece-wine-ancient-varieties-modern-reinterpretation"
-            },
-            {
-                title: "칠레 와인, 카르멘네의 글로벌 브랜드화 성공",
-                excerpt: "칠레 와인 산업이 카르멘네 품종을 글로벌 브랜드로 성공적으로 육성하고 있습니다. 특히 안데스 산맥의 독특한 테루아르를 활용한 프리미엄 와인들이 인기를 얻고 있습니다.",
-                source: "Gambero Rosso",
-                readCount: "8,230",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.gamberorossointernational.com/news/chile-carmenere-global-branding-success"
-            },
-            {
-                title: "아르헨티나 와인, 말벡의 새로운 가능성 탐구",
-                excerpt: "아르헨티나 와인 산업이 말벡 품종의 새로운 가능성을 탐구하고 있습니다. 특히 고지대 재배와 새로운 와인 스타일 개발로 시장을 확대하고 있습니다.",
-                source: "Michelin Guide",
-                readCount: "7,450",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://guide.michelin.com/kr/ko/news/argentina-malbec-new-possibilities"
-            },
-            {
-                title: "남아프리카 와인, 피노타지의 글로벌 인지도 향상",
-                excerpt: "남아프리카 와인 산업이 피노타지 품종의 글로벌 인지도를 높이고 있습니다. 특히 올드 바인 피노타지의 품질 향상이 국제적으로 인정받고 있습니다.",
-                source: "Wine Spectator",
-                readCount: "6,780",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.winespectator.com/articles/south-africa-pinotage-global-recognition"
-            },
-            {
-                title: "캐나다 와인, 아이스 와인의 프리미엄 브랜드화",
-                excerpt: "캐나다 와인 산업이 아이스 와인을 프리미엄 브랜드로 성공적으로 육성하고 있습니다. 특히 온타리오 지역의 아이스 와인이 세계적으로 인정받고 있습니다.",
-                source: "Decanter",
-                readCount: "5,340",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.decanter.com/wine-news/canada-ice-wine-premium-branding"
-            },
-            {
-                title: "스위스 와인, 지역 특산품으로서의 가치 재발견",
-                excerpt: "스위스 와인 산업이 지역 특산품으로서의 가치를 재발견하고 있습니다. 특히 샤슬라와 피노 누아 품종의 독특한 특성이 주목받고 있습니다.",
-                source: "Robert Parker",
-                readCount: "4,560",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.robertparker.com/news/switzerland-wine-regional-specialty-rediscovery"
-            },
-            {
-                title: "루마니아 와인, 전통 품종의 현대적 부활",
-                excerpt: "루마니아 와인 산업이 전통 품종들을 현대적으로 부활시키고 있습니다. 특히 프리카바와 그라사 데 코트나리 품종이 새로운 와인 스타일로 개발되고 있습니다.",
-                source: "James Suckling",
-                readCount: "3,890",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jamessuckling.com/wine-news/romania-wine-traditional-varieties-modern-revival"
-            },
-            {
-                title: "불가리아 와인, 유기농 재배 확대로 시장 확대",
-                excerpt: "불가리아 와인 산업이 유기농 재배 확대를 통해 시장을 확대하고 있습니다. 특히 멜닉과 마브루드 품종의 유기농 와인이 인기를 얻고 있습니다.",
-                source: "Jancis Robinson",
-                readCount: "3,450",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jancisrobinson.com/articles/bulgaria-wine-organic-cultivation-market-expansion"
-            },
-            {
-                title: "크로아티아 와인, 토착 품종의 글로벌 진출",
-                excerpt: "크로아티아 와인 산업이 토착 품종들을 글로벌 시장에 진출시키고 있습니다. 특히 플라비치 말리와 포시프 품종이 새로운 와인 스타일로 주목받고 있습니다.",
-                source: "Burghound",
-                readCount: "2,980",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.burghound.com/news/croatia-wine-indigenous-varieties-global-entry"
-            },
-            {
-                title: "슬로베니아 와인, 자연주의 와인의 선구자 역할",
-                excerpt: "슬로베니아 와인 산업이 자연주의 와인의 선구자 역할을 하고 있습니다. 특히 오렌지 와인과 자연 발효 와인이 국제적으로 인정받고 있습니다.",
-                source: "Gambero Rosso",
-                readCount: "2,670",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.gamberorossointernational.com/news/slovenia-wine-natural-wine-pioneer"
-            },
-            {
-                title: "체코 와인, 모라비아 지역의 품질 향상",
-                excerpt: "체코 와인 산업이 모라비아 지역의 품질 향상에 집중하고 있습니다. 특히 그뤼너 벨트너와 리슬링 품종의 품질이 크게 향상되고 있습니다.",
-                source: "Michelin Guide",
-                readCount: "2,340",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://guide.michelin.com/kr/ko/news/czech-wine-moravia-quality-improvement"
-            },
-            {
-                title: "슬로바키아 와인, 토카이 스타일 와인의 개발",
-                excerpt: "슬로바키아 와인 산업이 토카이 스타일 와인의 개발에 집중하고 있습니다. 특히 후르미트 품종을 활용한 새로운 와인 스타일이 개발되고 있습니다.",
-                source: "Wine Spectator",
-                readCount: "2,120",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.winespectator.com/articles/slovakia-wine-tokaji-style-development"
-            },
-            {
-                title: "폴란드 와인, 기후 변화 대응으로 새로운 가능성",
-                excerpt: "폴란드 와인 산업이 기후 변화 대응을 통해 새로운 가능성을 찾고 있습니다. 특히 온난화로 인한 와인 생산 지역 확대가 주목받고 있습니다.",
-                source: "Decanter",
-                readCount: "1,890",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.decanter.com/wine-news/poland-wine-climate-change-new-possibilities"
-            },
-            {
-                title: "우크라이나 와인, 전통의 현대적 계승",
-                excerpt: "우크라이나 와인 산업이 전통을 현대적으로 계승하고 있습니다. 특히 크림 반도의 와인 생산이 새로운 활기를 찾고 있습니다.",
-                source: "Robert Parker",
-                readCount: "1,670",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.robertparker.com/news/ukraine-wine-tradition-modern-succession"
-            },
-            {
-                title: "몰도바 와인, 유럽 최대 지하 와인 저장고의 활용",
-                excerpt: "몰도바 와인 산업이 유럽 최대 지하 와인 저장고를 활용하여 새로운 가치를 창출하고 있습니다. 특히 와인 관광과 문화적 가치 개발에 집중하고 있습니다.",
-                source: "James Suckling",
-                readCount: "1,450",
-                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jamessuckling.com/wine-news/moldova-wine-underground-cellar-utilization"
-            },
-            {
-                title: "조지아 와인, 8000년 전통의 현대적 해석",
-                excerpt: "조지아 와인 산업이 8000년 전통을 현대적으로 해석하고 있습니다. 특히 쿠베리 품종과 전통적인 크베브리 방식이 국제적으로 주목받고 있습니다.",
-                source: "Jancis Robinson",
-                readCount: "1,230",
-                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                url: "https://www.jancisrobinson.com/articles/georgia-wine-8000-year-tradition-modern-interpretation"
-            }
-        ];
+  // 마지막 업데이트 시간 표시
+  function updateLastUpdateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const el = document.getElementById('lastUpdate');
+    if (el) el.textContent = `마지막 업데이트: ${timeString}`;
+  }
 
-        // 뉴스 카드 생성 함수
-        function createNewsCard(news) {
-            return `
-                <div class="news-card">
-                    <a href="${news.url || '#'}" target="_blank" rel="noopener noreferrer">
-                        <div class="news-image" style="background-image: url('${news.image}')">
-                            <i class="fas fa-wine-glass-alt"></i>
-                        </div>
-                        <div class="news-content">
-                            <span class="news-source">${news.source}</span>
-                            <h3 class="news-title">${news.title}</h3>
-                            <p class="news-excerpt">${news.excerpt}</p>
-                            <div class="news-meta">
-                                <span class="read-count">
-                                    <i class="fas fa-eye"></i>
-                                    ${news.readCount} 읽음
-                                </span>
-                                <span>${getRandomTime()}</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            `;
-        }
+  // 간단한 인기 순 정렬(읽음 수 내림차순) + 표시
+  function displayNews() {
+    const container = document.getElementById('newsContainer');
+    if (!container) return;
 
-        // 랜덤 시간 생성 함수
-        function getRandomTime() {
-            const hours = Math.floor(Math.random() * 24);
-            const minutes = Math.floor(Math.random() * 60);
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        }
+    // 숫자 비교를 위해 readCount에서 콤마 제거
+    const sorted = [...wineNews].sort((a, b) => {
+      const an = Number(String(a.readCount).replace(/,/g, ""));
+      const bn = Number(String(b.readCount).replace(/,/g, ""));
+      return bn - an;
+    });
 
-        // 마지막 업데이트 시간 설정
-        function updateLastUpdateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('lastUpdate').textContent = `마지막 업데이트: ${timeString}`;
-        }
+    container.innerHTML = "";
+    sorted.forEach(news => {
+      container.innerHTML += createNewsCard(news);
+    });
+  }
 
-        // 뉴스 표시 함수
-        function displayNews() {
-            const container = document.getElementById('newsContainer');
-            container.innerHTML = '';
-            
-            wineNews.forEach(news => {
-                container.innerHTML += createNewsCard(news);
-            });
-        }
+  // 새로고침 없이 "업데이트" 느낌 주기: 읽음수/순서 약간 섞기
+  function refreshNews() {
+    // 읽음수에 약간의 변동(연출용)
+    wineNews.forEach(item => {
+      const base = Number(String(item.readCount).replace(/,/g, "")) || 0;
+      const delta = Math.floor(Math.random() * 200); // 0~199 증가
+      item.readCount = (base + delta).toLocaleString("ko-KR");
+    });
+    updateLastUpdateTime();
+    displayNews();
+  }
 
-        // 페이지 로드 시 실행
-        document.addEventListener('DOMContentLoaded', function() {
-            updateLastUpdateTime();
-            displayNews();
-            
-            // 1시간마다 업데이트 (실제로는 서버에서 새로운 데이터를 가져와야 함)
-            setInterval(() => {
-                updateLastUpdateTime();
-                // 여기서 실제 API 호출을 통해 새로운 뉴스를 가져올 수 있습니다
-            }, 3600000); // 1시간 = 3600000ms
-        });
-    </script>
-</body>
-</html>
+  // 페이지 로드 시 실행
+  document.addEventListener("DOMContentLoaded", function() {
+    updateLastUpdateTime();
+    displayNews();
+
+    // ▶︎ 3) 자동 업데이트: 30분(1,800,000ms)마다 새로고침
+    // 실제로는 이 자리에서 API 호출 → wineNews 교체 후 displayNews() 호출 권장
+    setInterval(() => {
+      refreshNews();
+    }, 1800000);
+  });
+</script>
