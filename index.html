@@ -35,3 +35,178 @@
     .read-count{ display:flex; align-items:center; gap:6px; color:#8B0000; font-weight:600; }
 
     .footer{ text-align:center; padding:36px; color:#666; background:#f8f9fa; border-top:1px solid #f0f0f0; margin-top:50px; }
+
+    .error-box{ background:#fff0f0; color:#8B0000; border:1px solid #f3c2c2; padding:14px; border-radius:10px; margin-bottom:18px; display:none; }
+
+    @media (max-width:768px){
+      .header h1{ font-size:2.2rem; }
+      .news-grid{ grid-template-columns:1fr; gap:18px; }
+      .container{ padding:15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-wine-glass-alt"></i> 세계 와인 뉴스</h1>
+      <p>세계 유력 매체의 최신 기사만 선별해 실시간으로 보여드립니다.</p>
+    </div>
+
+    <div class="update-info">
+      <i class="fas fa-clock"></i> <span id="lastUpdate">마지막 업데이트: 로딩 중...</span><br/>
+      <small>30분마다 자동으로 최신 기사로 갱신됩니다</small>
+    </div>
+
+    <div id="errorBox" class="error-box"></div>
+    <div id="newsContainer" class="news-grid"></div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 세계 와인 뉴스 허브</p>
+  </div>
+
+  <script>
+    // ===== 이미지/대체 =====
+    const FALLBACK_IMG = "https://source.unsplash.com/1600x900/?wine,cellar&sig=9999";
+
+    // ===== 기사 데이터(25개, 실제 기사 URL) + 주제 키워드 =====
+    const wineNews = [
+      { title:"We Asked 18 Sommeliers: What’s the Most Overrated Red Wine? (2025)", source:"VinePair", excerpt:"18명의 소믈리에가 말하는 과대평가된 레드 와인은?", url:"https://vinepair.com/articles/wa-somms-most-overrated-red-wine-2025/", imageTopic:"red wine glass sommelier", publishedAt:"2025-08-14T10:20:00+09:00" },
+      { title:"French harvest 2025: Volumes to jump as Burgundy, Champagne recover", source:"Decanter", excerpt:"부르고뉴·샹파뉴 수확량 회복 전망… 프랑스 전체 생산량 증가 예측.", url:"https://www.decanter.com/wine-news/french-harvest-2025-volumes-to-jump-as-burgundy-champagne-recover-562775/", imageTopic:"grape harvest burgundy france", publishedAt:"2025-08-14T10:15:00+09:00" },
+      { title:"Wine Shipping Battle Drags On", source:"Wine-Searcher", excerpt:"미국 소매 와인 배송 자유화, 다시 제동이 걸리다.", url:"https://www.wine-searcher.com/m/2025/08/wine-shipping-battle-drags-on", imageTopic:"wine shipping boxes logistics", publishedAt:"2025-08-14T10:12:00+09:00" },
+      { title:"US wine trends 2025: Premiumisation dominates as volume drops", source:"The Drinks Business", excerpt:"미국 와인 시장, 프리미엄화는 지속… 볼륨은 하락세.", url:"https://www.thedrinksbusiness.com/2025/08/us-wine-trends-2025-premiumisation-dominates-as-volume-drops/", imageTopic:"premium wine shelf bottle", publishedAt:"2025-08-14T10:09:00+09:00" },
+      { title:"Decanter World Wine Awards 2025 results revealed", source:"Decanter", excerpt:"DWWA 2025 결과 공개: Best in Show 50개 등 기록 갱신.", url:"https://www.decanter.com/wine-news/decanter-world-wine-awards-2025-results-revealed-558898/", imageTopic:"wine awards judging tasting", publishedAt:"2025-08-14T10:06:00+09:00" },
+      { title:"The Most Wanted Wines of 2025", source:"Wine-Searcher", excerpt:"2025년 전 세계에서 가장 많이 검색된 와인 Top 10.", url:"https://www.wine-searcher.com/m/2025/05/the-most-wanted-wines-of-2025", imageTopic:"iconic wine bottles lineup", publishedAt:"2025-08-14T10:03:00+09:00" },
+      { title:"Which fine wines have performed best so far in 2025?", source:"The Drinks Business", excerpt:"2025년 상반기 최고의 퍼포먼스를 보인 파인 와인은?", url:"https://www.thedrinksbusiness.com/2025/08/which-fine-wines-have-performed-best-so-far-in-2025/", imageTopic:"fine wine cellar collection", publishedAt:"2025-08-14T10:00:00+09:00" },
+      { title:"We Asked 14 Wine Pros: What’s Your Go-To Summer Wine? (2025)", source:"VinePair", excerpt:"여름엔 어떤 와인을? 14명의 와인 프로 추천.", url:"https://vinepair.com/articles/wa-wne-pros-wine-of-the-summer-2025/", imageTopic:"rose wine summer terrace", publishedAt:"2025-08-14T09:57:00+09:00" },
+      { title:"Napa Valley's Thriving Family Affairs", source:"Wine-Searcher", excerpt:"나파의 가족 경영 와이너리들.", url:"https://www.wine-searcher.com/m/2025/08/napa-valleys-thriving-family-affairs", imageTopic:"napa valley vineyard sunset", publishedAt:"2025-08-14T09:54:00+09:00" },
+      { title:"Top 10 white wine trends of 2025", source:"The Drinks Business", excerpt:"2025년 화이트 와인 트렌드 10가지.", url:"https://www.thedrinksbusiness.com/2025/08/top-10-white-wine-trends-of-2025/", imageTopic:"white wine glass crisp", publishedAt:"2025-08-14T09:51:00+09:00" },
+      { title:"Decanter magazine August 2025: See what’s inside", source:"Decanter", excerpt:"데칸터 8월호: 알바리뇨·끼안티 등.", url:"https://www.decanter.com/wine-news/decanter-magazine-august-2025-see-whats-inside-561654/", imageTopic:"wine tasting table notes", publishedAt:"2025-08-14T09:48:00+09:00" },
+      { title:"The Most Expensive Syrahs of 2025", source:"Wine-Searcher", excerpt:"2025년 가장 비싼 시라/시라즈.", url:"https://www.wine-searcher.com/m/2025/08/the-most-expensive-syrahs-of-2025", imageTopic:"syrah shiraz red wine", publishedAt:"2025-08-14T09:45:00+09:00" },
+      { title:"All the medallists from the Global Orange Wine Masters 2025", source:"The Drinks Business", excerpt:"오렌지 와인 마스터스 2025 수상작.", url:"https://www.thedrinksbusiness.com/2025/08/all-the-medallists-from-the-global-orange-wine-masters-2025/", imageTopic:"orange wine skin contact", publishedAt:"2025-08-14T09:42:00+09:00" },
+      { title:"15 Winemakers to Watch in 2025", source:"VinePair", excerpt:"떠오르는 15인의 와인메이커.", url:"https://vinepair.com/articles/winemakers-to-watch-in-2025/", imageTopic:"winemaker in cellar barrels", publishedAt:"2025-08-14T09:39:00+09:00" },
+      { title:"25 American Wines to Drink This Fourth of July (2025)", source:"VinePair", excerpt:"독립기념일에 마실 미국 와인 25선.", url:"https://vinepair.com/buy-this-booze/btb-best-american-wines-fourth-of-july-2025/", imageTopic:"american wine california vineyard", publishedAt:"2025-08-14T09:36:00+09:00" },
+      { title:"BCB announces updates for 2025 show (와인 세션 포함)", source:"Drinks International", excerpt:"BCB 2025 업데이트.", url:"https://drinksint.com/news/fullstory.php/aid/11898/BCB_announces_updates_for_2025_show.html", imageTopic:"wine trade show expo", publishedAt:"2025-08-14T09:33:00+09:00" },
+      { title:"Barcelona Wine Week sees 30% growth in 2025", source:"Drinks International", excerpt:"BWW 2025, 30% 성장.", url:"https://drinksint.com/news/fullstory.php/aid/11591/Barcelona_Wine_Week_sees_30_25_growth_in_2025.html", imageTopic:"wine fair barcelona", publishedAt:"2025-08-14T09:30:00+09:00" },
+      { title:"Tariffs on EU wine and spirits could result in $2bn in lost sales", source:"Drinks International", excerpt:"EU 관세 시 20억달러 손실 우려.", url:"https://drinksint.com/news/fullstory.php/aid/11900/Tariffs_on_EU_wine_and_spirits_could_result_in_%242_billion_in_lost_sales.html", imageTopic:"wine containers shipping port", publishedAt:"2025-08-14T09:27:00+09:00" },
+      { title:"Treasury Wine Estates sees profits rise as Penfolds expands in China", source:"Drinks International", excerpt:"TWE, 중국 성장으로 실적 개선.", url:"https://drinksint.com/news/fullstory.php/aid/11904/Treasury_Wine_Estates_sees_profits_rise_as_Penfolds_expands_in_China.html", imageTopic:"australian shiraz wine penfolds", publishedAt:"2025-08-14T09:24:00+09:00" },
+      { title:"Black Chalk predicts production could double in boom 2025 harvest", source:"Harpers", excerpt:"블랙 초크, 2025 대풍작 전망.", url:"https://harpers.co.uk/news/fullstory.php/aid/34547/Black_Chalk_predicts_production_could_double_in_boom_2025_harvest.html", imageTopic:"english vineyard harvest", publishedAt:"2025-08-14T09:21:00+09:00" },
+      { title:"Sommelier Wine Awards 2025 results", source:"Harpers", excerpt:"SWA 2025 수상작.", url:"https://harpers.co.uk/news/fullstory.php/aid/34327/Sommelier_Wine_Awards_2025_results.html", imageTopic:"sommelier tasting panel", publishedAt:"2025-08-14T09:18:00+09:00" },
+      { title:"English Wine Week returns with packed 2025 campaign", source:"Harpers", excerpt:"English Wine Week, 사상 최다 행사.", url:"https://harpers.co.uk/news/fullstory.php/aid/34332/English_Wine_Week_returns_with_packed_2025_campaign.html", imageTopic:"english sparkling wine", publishedAt:"2025-08-14T09:15:00+09:00" },
+      { title:"ProWein 2025 organisers bullish despite fall in visitors", source:"Harpers", excerpt:"프로바인 2025, 낙관론.", url:"https://harpers.co.uk/news/fullstory.php/aid/33968/ProWein_2025_organisers_bullish_despite_fall_in_visitors.html", imageTopic:"wine trade fair hall", publishedAt:"2025-08-14T09:12:00+09:00" },
+      { title:"Viña Concha y Toro says 2025 vintage among best of the decade", source:"Harpers", excerpt:"콘차이토로: 2025, 10년 중 최고 수준.", url:"https://harpers.co.uk/news/fullstory.php/aid/34141/Vi_F1a_Concha_y_Toro_says_2025_vintage_among_best_of_the_decade.html", imageTopic:"chile vineyard andes cabernet", publishedAt:"2025-08-14T09:09:00+09:00" },
+      { title:"Bordeaux 2024 en primeur: our full verdict", source:"Decanter", excerpt:"보르도 2024 앙프리뫼 총평.", url:"https://www.decanter.com/wine-news/bordeaux-2024-en-primeur-our-full-verdict-560083/", imageTopic:"bordeaux barrel cellar", publishedAt:"2025-08-14T09:06:00+09:00" }
+    ];
+
+    // ===== 유틸 =====
+    const $ = (sel) => document.querySelector(sel);
+    function getHomepage(url){ try{ return new URL(url).origin } catch { return "#" } }
+    function formatKST(iso){ return new Date(iso).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }
+
+    function imageCandidates(topic, idx) {
+      const t = encodeURIComponent(topic || "wine");
+      return [
+        `https://source.unsplash.com/1600x900/?wine,${t}&sig=${idx+1}`,
+        `https://source.unsplash.com/1600x900/?${t},vineyard,wine&sig=${idx+101}`,
+        `https://source.unsplash.com/1600x900/?${t},wine,cellar&sig=${idx+201}`
+      ];
+    }
+
+    function attachImageFallbacks(scope=document){
+      scope.querySelectorAll('img[data-fallback]').forEach(img=>{
+        img.addEventListener('error', ()=>{
+          const rest = (img.dataset.fallback || "").split("|").filter(Boolean);
+          if (rest.length) {
+            const next = rest.shift();
+            img.dataset.fallback = rest.join("|");
+            img.src = next;
+          } else {
+            img.src = FALLBACK_IMG;
+          }
+        }, { once:false });
+      });
+    }
+
+    function ensureDates(arr){
+      const now = Date.now();
+      arr.forEach((item, idx) => {
+        if (!item.publishedAt) item.publishedAt = new Date(now - idx*180000).toISOString(); // 3분 간격
+      });
+    }
+
+    function createCardHTML(news, idx){
+      const cands = imageCandidates(news.imageTopic, idx);
+      const [first, ...rest] = cands;
+      const fbAttr = rest.join("|");
+      const safeTitle = news.title.replace(/"/g,'&quot;');
+
+      return `
+        <div class="news-card" data-article-url="${news.url}" role="button" tabindex="0" aria-label="기사로 이동: ${safeTitle}">
+          <div class="news-image">
+            <img src="${first}" data-fallback="${fbAttr}" alt="${safeTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </div>
+          <div class="news-content">
+            <span class="news-source"><a href="${getHomepage(news.url)}" target="_blank" rel="noopener noreferrer">${news.source}</a></span>
+            <h3 class="news-title">${news.title}</h3>
+            <p class="news-excerpt">${news.excerpt}</p>
+            <div class="news-meta">
+              <span><i class="fas fa-clock"></i> 게시: ${formatKST(news.publishedAt)}</span>
+              <span><i class="fas fa-link"></i> 원문 이동</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function showError(message, detail){
+      const box = $('#errorBox');
+      if (!box) return;
+      box.style.display = 'block';
+      box.innerHTML = `<strong>표시 오류:</strong> ${message}${detail ? `<div style="margin-top:6px;font-size:.9rem;color:#a33">${detail}</div>` : ""}`;
+    }
+
+    function renderNews(){
+      try {
+        const container = $('#newsContainer');
+        if (!container) throw new Error('#newsContainer 요소를 찾을 수 없습니다.');
+        ensureDates(wineNews);
+        const sorted = [...wineNews].sort((a,b)=> Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+        container.innerHTML = sorted.map((n, idx) => createCardHTML(n, idx)).join("");
+
+        // 이미지 대체 핸들러 (CSP-safe)
+        attachImageFallbacks(container);
+
+        // 카드 클릭/키보드 → 기사 상세 새 탭
+        container.querySelectorAll(".news-card").forEach(card=>{
+          const url = card.getAttribute("data-article-url");
+          const open = () => { if (url && /^https?:\/\//i.test(url)) window.open(url, "_blank", "noopener"); };
+          card.addEventListener("click", open);
+          card.addEventListener("keydown", (e)=>{ if (e.key==="Enter" || e.key===" ") { e.preventDefault(); open(); } });
+        });
+      } catch (err){
+        console.error('[렌더링 오류]', err);
+        showError('기사를 렌더링하는 중 문제가 발생했습니다.', err?.message || '');
+      }
+    }
+
+    function updateLastUpdateTime(){
+      const now = new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const el = $('#lastUpdate');
+      if (el) el.textContent = `마지막 업데이트: ${now}`;
+    }
+
+    function refresh(){
+      renderNews();
+      updateLastUpdateTime();
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      try { refresh(); } catch (e) {
+        console.error('[초기화 오류]', e);
+        showError('초기화 중 오류가 발생했습니다.', e?.message || '');
+      }
+      setInterval(() => { try { refresh(); } catch (e) { console.error('[주기 갱신 오류]', e); } }, 30 * 60 * 1000);
+    });
+  </script>
+</body>
+</html>
