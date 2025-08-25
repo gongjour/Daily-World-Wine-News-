@@ -88,32 +88,29 @@
       });
     }
 
-    function renderNews() {
-      const container = $('#newsContainer');
-      const sorted = [...wineNews].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
-      container.innerHTML = sorted.slice(0, 25).map((item, idx) => createCardHTML(item, idx)).join('');
-    }
+function createCardHTML(item) {
+  const safeTitle = item.title.replace(/"/g, '&quot;');
+  const imageSrc = item.imageUrl || `https://via.placeholder.com/100`;
+  const sourceHost = getHomepage(item.url);
 
-    function createCardHTML(item, idx) {
-      const safeTitle = item.title.replace(/"/g, '&quot;');
-      const imageSrc = item.imageUrl || `https://via.placeholder.com/100`;
+  return `
+    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card" aria-label="기사로 이동: ${safeTitle}">
+      <div class="news-image">
+        <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
+      </div>
+      <div class="news-content">
+        <span class="news-source">${item.source} (${sourceHost})</span>
+        <h3 class="news-title">${item.title}</h3>
+        <p class="news-excerpt">${item.excerpt}</p>
+        <div class="news-meta">
+          <span>🕒 ${formatKST(item.publishedAt)}</span>
+          <span>${item.emoji || ''} 원문 보기</span>
+        </div>
+      </div>
+    </a>
+  `;
+}
 
-      return `
-        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card" aria-label="기사로 이동: ${safeTitle}">
-          <div class="news-image">
-            <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
-          </div>
-          <div class="news-content">
-            <h3 class="news-title">${item.title}</h3>
-            <p class="news-excerpt">${item.excerpt}</p>
-            <div class="news-meta">
-              <span>🕒 ${formatKST(item.publishedAt)}</span>
-              <span>출처: ${item.source}</span>
-            </div>
-          </div>
-        </a>
-      `;
-    }
 
     function updateLastUpdateTime() {
       const now = new Date().toLocaleString('ko-KR', {
@@ -130,3 +127,4 @@
   </script>
 </body>
 </html>
+
