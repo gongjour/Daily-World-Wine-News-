@@ -1,0 +1,13 @@
+{
+  "name": "wine-news-hub",
+  "version": "1.0.0",
+  "description": "Wine News Auto Updater",
+  "main": "fetch-news.js",
+  "scripts": {
+    "update": "node fetch-news.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dayjs": "^1.11.10"
+  }
+}
