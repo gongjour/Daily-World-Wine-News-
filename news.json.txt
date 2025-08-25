@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Lanson Launches New Vintage Champagne",
+    "excerpt": "Maison Lanson has unveiled its 2012 Vintage Champagne with a new label and refined style.",
+    "url": "https://www.decanter.com/wine-news/lanson-2012-vintage-launch-558900/",
+    "source": "Decanter",
+    "publishedAt": "2025-08-23T10:30:00Z",
+    "emoji": "🍾"
+  },
+  {
+    "title": "Organic Burgundy Wines Gain Popularity in Korea",
+    "excerpt": "More sommeliers are focusing on sustainable producers from Côte de Nuits and Mâconnais.",
+    "url": "https://www.theworldwinejournal.com/organic-burgundy-in-korea/",
+    "source": "World Wine Journal",
+    "publishedAt": "2025-08-24T07:00:00Z",
+    "emoji": "🌿"
+  },
+  {
+    "title": "Tiger International to Host Fine Wine Tasting in Seoul",
+    "excerpt": "The event will feature Lanson, Domaine Anita, and top Rhône producers at a private venue.",
+    "url": "https://www.koreawinenews.co.kr/tiger-wine-tasting-2025",
+    "source": "Korea Wine News",
+    "publishedAt": "2025-08-25T08:15:00Z",
+    "emoji": "🍷"
+  }
+]
