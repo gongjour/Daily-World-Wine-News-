@@ -11,9 +11,7 @@
       padding: 2rem;
       background: #f9f9f9;
     }
-    h1 {
-      color: #800000;
-    }
+    h1 { color: #800000; }
     .update-time {
       font-size: 0.9rem;
       margin-bottom: 1rem;
@@ -40,9 +38,7 @@
       border-radius: 6px;
       object-fit: cover;
     }
-    .news-content {
-      flex-grow: 1;
-    }
+    .news-content { flex-grow: 1; }
     .news-title {
       font-size: 1.1rem;
       margin: 0.2rem 0;
@@ -59,10 +55,10 @@
       display: flex;
       gap: 1rem;
     }
-    .news-source {
+    .news-source a {
       font-weight: bold;
       color: #006699;
-      margin-bottom: 0.3rem;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -111,7 +107,9 @@
             <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
           </div>
           <div class="news-content">
-            <div class="news-source">${item.source}</div>
+            <span class="news-source">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.source}</a>
+            </span>
             <h3 class="news-title">${item.title}</h3>
             <p class="news-excerpt">${item.excerpt}</p>
             <div class="news-meta">
@@ -133,7 +131,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchNews();
-      setInterval(fetchNews, 3 * 60 * 1000); // 3분마다 자동 업데이트
+      setInterval(fetchNews, 3 * 60 * 1000);
     });
   </script>
 </body>
