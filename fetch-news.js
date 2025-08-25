@@ -1,27 +1,42 @@
 // fetch-news.js
-const fs = require("fs");
-const axios = require("axios");
-const dayjs = require("dayjs");
+import fs from 'fs';
+import fetch from 'node-fetch';
+import { parse } from 'node-html-parser';
 
-// 예시 기사들 (실제 크롤링 로직은 API 또는 RSS에서 작성 가능)
-const news = [
-  {
-    title: "2025 수확량 급증 기대",
-    source: "Decanter",
-    excerpt: "부르고뉴와 샹파뉴 생산량 급등 예상",
-    url: "https://www.decanter.com/fake-news-link-1",
-    emoji: "🍇",
-    publishedAt: dayjs().format()
-  },
-  {
-    title: "소믈리에가 말하는 과대평가 와인",
-    source: "VinePair",
-    excerpt: "18인의 소믈리에가 언급한 와인 리스트",
-    url: "https://www.vinepair.com/fake-news-link-2",
-    emoji: "🍷",
-    publishedAt: dayjs().format()
+const NEWS_COUNT = 25;
+const OUTPUT_FILE = 'news.json';
+
+async function fetchWineNews() {
+  const response = await fetch("https://www.decanter.com/wine-news/");
+  const html = await response.text();
+  const root = parse(html);
+
+  const articles = root.querySelectorAll("article");
+
+  const newsItems = [];
+
+  for (let i = 0; i < Math.min(NEWS_COUNT, articles.length); i++) {
+    const article = articles[i];
+    const aTag = article.querySelector('a');
+    const title = aTag?.text.trim() || "Untitled";
+    const url = aTag?.getAttribute('href')?.startsWith('http') ? aTag.getAttribute('href') : `https://www.decanter.com${aTag.getAttribute('href')}`;
+    const excerpt = article.querySelector('p')?.text.trim() || '';
+    const publishedAt = new Date().toISOString(); // Decanter doesn't expose dates easily
+    const image = article.querySelector('img')?.getAttribute('src') || `https://picsum.photos/seed/${i}/400/250`;
+
+    newsItems.push({
+      title,
+      excerpt,
+      url,
+      source: "Decanter",
+      publishedAt,
+      emoji: "🍷",
+      imageUrl: image
+    });
   }
-];
 
-fs.writeFileSync("news.json", JSON.stringify(news, null, 2), "utf-8");
-console.log("✅ news.json updated");
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(newsItems, null, 2));
+  console.log(`✅ Fetched ${newsItems.length} news articles`);
+}
+
+fetchWineNews();
