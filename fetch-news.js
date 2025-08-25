@@ -20,12 +20,13 @@ async function fetchWineNews() {
       const aTag = article.querySelector('a');
       const title = aTag?.text.trim() || "Untitled";
 
-      let href = aTag?.getAttribute('href') || '';
-      if (!href.startsWith('http')) {
-        href = `https://www.decanter.com${href}`;
-      }
+      const href = aTag?.getAttribute('href');
+      const url = href?.startsWith('http')
+        ? href
+        : (href ? `https://www.decanter.com${href}` : '');
 
       const excerpt = article.querySelector('p')?.text.trim() || '';
+
       const imgTag = article.querySelector('img');
       const image = imgTag?.getAttribute('data-src') ||
                     imgTag?.getAttribute('src') ||
@@ -36,7 +37,7 @@ async function fetchWineNews() {
       newsItems.push({
         title,
         excerpt,
-        url: href,
+        url,
         source: "Decanter",
         publishedAt,
         emoji: "🍷",
