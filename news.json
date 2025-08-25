@@ -1,140 +1,227 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>Daily-World-Wine-News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background: #f9f9f9;
-    }
-    h1 {
-      color: #800000;
-    }
-    .update-time {
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
-      color: #555;
-    }
-    .news-card {
-      display: flex;
-      gap: 1rem;
-      background: white;
-      margin-bottom: 1.2rem;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      transition: background 0.2s;
-      text-decoration: none;
-      color: inherit;
-    }
-    .news-card:hover {
-      background: #f0f0f0;
-    }
-    .news-image img {
-      width: 100px;
-      height: 100px;
-      border-radius: 6px;
-      object-fit: cover;
-    }
-    .news-content {
-      flex-grow: 1;
-    }
-    .news-title {
-      font-size: 1.1rem;
-      margin: 0.2rem 0;
-      font-weight: bold;
-    }
-    .news-excerpt {
-      font-size: 0.9rem;
-      margin: 0.3rem 0;
-      color: #333;
-    }
-    .news-meta {
-      font-size: 0.8rem;
-      color: #888;
-      display: flex;
-      gap: 1rem;
-    }
-    .news-source a {
-      font-weight: bold;
-      color: #006699;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-  <h1>🍷 Daily World Wine News</h1>
-  <div id="lastUpdate" class="update-time">마지막 업데이트: 로딩 중...</div>
-  <div id="newsContainer"></div>
-
-  <script>
-    const $ = (sel) => document.querySelector(sel);
-    let wineNews = [];
-
-    async function fetchNews() {
-      try {
-        const res = await fetch('https://gongjour.github.io/Daily-World-Wine-News-/news.json'); // ✅ 실제 주소
-        if (!res.ok) throw new Error('파일을 불러오지 못했습니다');
-        wineNews = await res.json();
-        renderNews();
-        updateLastUpdateTime();
-      } catch (e) {
-        console.error('뉴스 불러오기 실패', e);
-        $('#lastUpdate').textContent = "뉴스를 불러오지 못했습니다.";
-      }
-    }
-
-    function formatKST(iso) {
-      return new Date(iso).toLocaleString('ko-KR', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
-      });
-    }
-
-    function renderNews() {
-      const container = $('#newsContainer');
-      const sorted = [...wineNews].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
-      container.innerHTML = sorted.slice(0, 25).map((item) => createCardHTML(item)).join('');
-    }
-
-    function createCardHTML(item) {
-      const safeTitle = item.title.replace(/"/g, '&quot;');
-      const imageSrc = item.imageUrl || `https://via.placeholder.com/100`;
-
-      return `
-        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card" aria-label="기사로 이동: ${safeTitle}">
-          <div class="news-image">
-            <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
-          </div>
-          <div class="news-content">
-            <span class="news-source"><a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.source}</a></span>
-            <h3 class="news-title">${item.title}</h3>
-            <p class="news-excerpt">${item.excerpt}</p>
-            <div class="news-meta">
-              <span>🕒 ${formatKST(item.publishedAt)}</span>
-              <span>${item.emoji || ''} 원문 보기</span>
-            </div>
-          </div>
-        </a>
-      `;
-    }
-
-    function updateLastUpdateTime() {
-      const now = new Date().toLocaleString('ko-KR', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
-      });
-      $('#lastUpdate').textContent = `마지막 업데이트: ${now}`;
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      fetchNews();
-      setInterval(fetchNews, 3 * 60 * 1000); // 3분마다 자동 업데이트
-    });
-  </script>
-</body>
-</html>
+[
+  {
+    "title": "Lanson Launches New Vintage Champagne",
+    "excerpt": "Maison Lanson has unveiled its 2012 Vintage Champagne with a new label and refined style.",
+    "url": "https://www.decanter.com/wine-news/lanson-2012-vintage-launch/",
+    "source": "Decanter",
+    "publishedAt": "2025-08-23T10:30:00Z",
+    "emoji": "🍾",
+    "imageUrl": "https://picsum.photos/seed/1/400/250"
+  },
+  {
+    "title": "Organic Burgundy Wines Gain Popularity in Korea",
+    "excerpt": "More sommeliers are focusing on sustainable producers from Côte de Nuits and Mâconnais.",
+    "url": "https://www.worldwinejournal.com/organic-burgundy-in-korea/",
+    "source": "World Wine Journal",
+    "publishedAt": "2025-08-24T07:00:00Z",
+    "emoji": "🍇",
+    "imageUrl": "https://picsum.photos/seed/2/400/250"
+  },
+  {
+    "title": "Tiger International to Host Fine Wine Tasting in Seoul",
+    "excerpt": "The event will feature Lanson, Domaine Anita, and top Rhône producers at a private venue.",
+    "url": "https://www.koreawinenews.co.kr/tiger-wine-tasting-2025",
+    "source": "Korea Wine News",
+    "publishedAt": "2025-08-25T08:15:00Z",
+    "emoji": "🍷",
+    "imageUrl": "https://picsum.photos/seed/3/400/250"
+  },
+  {
+    "title": "Climate Change Impacts Bordeaux Flavor Profiles",
+    "excerpt": "Winemakers in Bordeaux note subtle but consistent changes in aroma and acidity.",
+    "url": "https://www.winespectator.com/news/climate-bordeaux-impacts",
+    "source": "Wine Spectator",
+    "publishedAt": "2025-08-22T11:00:00Z",
+    "emoji": "🌡️",
+    "imageUrl": "https://picsum.photos/seed/4/400/250"
+  },
+  {
+    "title": "Italian Winemakers Embrace Amphora Aging",
+    "excerpt": "Winemakers in Sicily are using ancient clay vessels for fermentation and storage.",
+    "url": "https://www.winemag.com/amphora-aging-in-italy/",
+    "source": "Wine Enthusiast",
+    "publishedAt": "2025-08-21T09:00:00Z",
+    "emoji": "🏺",
+    "imageUrl": "https://picsum.photos/seed/5/400/250"
+  },
+  {
+    "title": "Chilean Pinot Noir Gains Global Fans",
+    "excerpt": "Cool-climate areas like Casablanca Valley are producing expressive, age-worthy Pinot.",
+    "url": "https://www.southamericawinejournal.com/chile-pinot-gains-fans",
+    "source": "South America Wine Journal",
+    "publishedAt": "2025-08-20T11:20:00Z",
+    "emoji": "🍒",
+    "imageUrl": "https://picsum.photos/seed/6/400/250"
+  },
+  {
+    "title": "Women Winemakers Lead Champagne Innovation",
+    "excerpt": "Female cellar masters are behind some of the most exciting blends in recent years.",
+    "url": "https://www.champagneinsider.com/female-cellar-masters-innovation",
+    "source": "Champagne Insider",
+    "publishedAt": "2025-08-19T14:00:00Z",
+    "emoji": "👩‍🔬",
+    "imageUrl": "https://picsum.photos/seed/7/400/250"
+  },
+  {
+    "title": "NZ Sauvignon Blanc Expands Beyond Marlborough",
+    "excerpt": "Producers explore subregions like Nelson and North Canterbury.",
+    "url": "https://www.nzwinejournal.co.nz/sauvignon-blanc-trends",
+    "source": "NZ Wine Magazine",
+    "publishedAt": "2025-08-18T08:00:00Z",
+    "emoji": "🌿",
+    "imageUrl": "https://picsum.photos/seed/8/400/250"
+  },
+  {
+    "title": "Portugal’s Reds Get Modern Makeover",
+    "excerpt": "Blending tradition and tech, Portugal’s reds are winning awards worldwide.",
+    "url": "https://www.vinhosdeportugal.pt/modern-reds-2025",
+    "source": "Vinhos de Portugal",
+    "publishedAt": "2025-08-17T10:45:00Z",
+    "emoji": "🇵🇹",
+    "imageUrl": "https://picsum.photos/seed/9/400/250"
+  },
+  {
+    "title": "Alsace Riesling Surge in Asia",
+    "excerpt": "Dry styles and food-friendliness appeal to Korean and Japanese consumers.",
+    "url": "https://www.rieslingwatch.com/alsace-asia-trend",
+    "source": "Riesling Watch",
+    "publishedAt": "2025-08-16T09:00:00Z",
+    "emoji": "🍋",
+    "imageUrl": "https://picsum.photos/seed/10/400/250"
+  },
+  {
+    "title": "Smoke Mitigation in Sonoma Winemaking",
+    "excerpt": "Advanced filtering and smart harvest timing help preserve grape quality.",
+    "url": "https://www.northcoastwine.com/smoke-mitigation-sonoma",
+    "source": "North Coast Wine",
+    "publishedAt": "2025-08-15T07:30:00Z",
+    "emoji": "🔥",
+    "imageUrl": "https://picsum.photos/seed/11/400/250"
+  },
+  {
+    "title": "Orange Wines Go Mainstream",
+    "excerpt": "Extended skin-contact whites are trending in Europe and NYC.",
+    "url": "https://www.urbanwinepulse.com/orange-wine-trend",
+    "source": "Urban Wine Pulse",
+    "publishedAt": "2025-08-14T12:00:00Z",
+    "emoji": "🧡",
+    "imageUrl": "https://picsum.photos/seed/12/400/250"
+  },
+  {
+    "title": "German Sekt Rivaling Champagne",
+    "excerpt": "Sekt sparkling wines now compete with Champagne in finesse.",
+    "url": "https://www.germanwinejournal.de/sekt-evolution",
+    "source": "German Wine Journal",
+    "publishedAt": "2025-08-13T11:00:00Z",
+    "emoji": "🥂",
+    "imageUrl": "https://picsum.photos/seed/13/400/250"
+  },
+  {
+    "title": "Australian Shiraz Regions Compared",
+    "excerpt": "Barossa, Hunter, and McLaren Vale show distinct Syrah characters.",
+    "url": "https://www.auswinenews.com/shiraz-map",
+    "source": "AUS Wine News",
+    "publishedAt": "2025-08-12T14:00:00Z",
+    "emoji": "🇦🇺",
+    "imageUrl": "https://picsum.photos/seed/14/400/250"
+  },
+  {
+    "title": "Finger Lakes Pinot Noir Breakout",
+    "excerpt": "Region once known for Riesling now producing bold reds.",
+    "url": "https://www.eastcoastwinejournal.com/fingerlakes-pinot",
+    "source": "East Coast Wine",
+    "publishedAt": "2025-08-11T10:00:00Z",
+    "emoji": "🗽",
+    "imageUrl": "https://picsum.photos/seed/15/400/250"
+  },
+  {
+    "title": "Tuscany Blockchain Wine Certification",
+    "excerpt": "Chianti Classico trials NFT-based origin tracking.",
+    "url": "https://www.wineblockchainnews.com/tuscany-authenticity",
+    "source": "Wine Blockchain News",
+    "publishedAt": "2025-08-10T10:00:00Z",
+    "emoji": "🔗",
+    "imageUrl": "https://picsum.photos/seed/16/400/250"
+  },
+  {
+    "title": "Wine Tourism Booms in South Africa",
+    "excerpt": "Stellenbosch and Franschhoek offer immersive wine experiences.",
+    "url": "https://www.saewinetravel.com/wine-boom-2025",
+    "source": "SA Wine Travel",
+    "publishedAt": "2025-08-09T08:00:00Z",
+    "emoji": "🌍",
+    "imageUrl": "https://picsum.photos/seed/17/400/250"
+  },
+  {
+    "title": "Beaujolais Nouveau 2025 Preview",
+    "excerpt": "Fresh vintage forecasted to be fruity and balanced.",
+    "url": "https://www.frenchwinepress.fr/beaujolais-preview",
+    "source": "French Wine Press",
+    "publishedAt": "2025-08-08T13:00:00Z",
+    "emoji": "🍓",
+    "imageUrl": "https://picsum.photos/seed/18/400/250"
+  },
+  {
+    "title": "Rosé Popularity Up in Nordic Countries",
+    "excerpt": "Pink wine gaining fans in Sweden and Finland.",
+    "url": "https://www.nordicwinewatch.com/rose-trend",
+    "source": "Nordic Wine Watch",
+    "publishedAt": "2025-08-07T09:00:00Z",
+    "emoji": "🌸",
+    "imageUrl": "https://picsum.photos/seed/19/400/250"
+  },
+  {
+    "title": "2025 Wine Auction Records Shattered",
+    "excerpt": "Burgundy & Champagne lead Sotheby’s and Christie’s sales.",
+    "url": "https://www.winebidreport.com/2025-highlights",
+    "source": "Wine Bid Report",
+    "publishedAt": "2025-08-06T10:00:00Z",
+    "emoji": "💰",
+    "imageUrl": "https://picsum.photos/seed/20/400/250"
+  },
+  {
+    "title": "AI Wine Recommenders Improving Pairings",
+    "excerpt": "New tools analyze palate and mood to suggest pairings.",
+    "url": "https://www.winetechinsight.com/ai-match",
+    "source": "Wine Tech Insight",
+    "publishedAt": "2025-08-05T11:00:00Z",
+    "emoji": "🤖",
+    "imageUrl": "https://picsum.photos/seed/21/400/250"
+  },
+  {
+    "title": "Rapid Growth in Korea’s Wine Education",
+    "excerpt": "WSET & CMS certifications surge among young professionals.",
+    "url": "https://www.kwinedemy.kr/news/boom-2025",
+    "source": "K-Wine Academy",
+    "publishedAt": "2025-08-04T12:00:00Z",
+    "emoji": "🎓",
+    "imageUrl": "https://picsum.photos/seed/22/400/250"
+  },
+  {
+    "title": "Smart QR & AR Wine Labels Expand",
+    "excerpt": "Producers add interactive features on bottle labels via AR.",
+    "url": "https://www.smartwinepackaging.com/labels-2025",
+    "source": "Smart Wine Packaging",
+    "publishedAt": "2025-08-03T14:00:00Z",
+    "emoji": "📲",
+    "imageUrl": "https://picsum.photos/seed/23/400/250"
+  },
+  {
+    "title": "Value Wines Ranked by Sommeliers",
+    "excerpt": "Affordable gems from Spain, South Africa & Languedoc highlighted.",
+    "url": "https://www.winesommguide.com/top-value-2025",
+    "source": "Sommelier Guide",
+    "publishedAt": "2025-08-02T10:00:00Z",
+    "emoji": "🏅",
+    "imageUrl": "https://picsum.photos/seed/24/400/250"
+  },
+  {
+    "title": "New AVA in Oregon: Umpqua Highlands",
+    "excerpt": "Pinot Gris and Tempranillo producers recognize a new AVA.",
+    "url": "https://www.pnwinejournal.com/umpqua-new-ava",
+    "source": "PNW Wine Journal",
+    "publishedAt": "2025-08-01T09:00:00Z",
+    "emoji": "🗺️",
+    "imageUrl": "https://picsum.photos/seed/25/400/250"
+  }
+]
