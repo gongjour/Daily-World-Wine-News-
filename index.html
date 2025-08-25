@@ -59,6 +59,11 @@
       display: flex;
       gap: 1rem;
     }
+    .news-source {
+      font-weight: bold;
+      color: #006699;
+      margin-bottom: 0.3rem;
+    }
   </style>
 </head>
 <body>
@@ -73,11 +78,13 @@
     async function fetchNews() {
       try {
         const res = await fetch('https://gongjour.github.io/Daily-World-Wine-News-/news.json');
+        if (!res.ok) throw new Error('파일을 불러오지 못했습니다');
         wineNews = await res.json();
         renderNews();
         updateLastUpdateTime();
       } catch (e) {
         console.error('뉴스 불러오기 실패', e);
+        $('#lastUpdate').textContent = "뉴스를 불러오지 못했습니다.";
       }
     }
 
@@ -88,29 +95,33 @@
       });
     }
 
-function createCardHTML(item) {
-  const safeTitle = item.title.replace(/"/g, '&quot;');
-  const imageSrc = item.imageUrl || `https://via.placeholder.com/100`;
-  const sourceHost = getHomepage(item.url);
+    function renderNews() {
+      const container = $('#newsContainer');
+      const sorted = [...wineNews].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+      container.innerHTML = sorted.slice(0, 25).map((item) => createCardHTML(item)).join('');
+    }
 
-  return `
-    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card" aria-label="기사로 이동: ${safeTitle}">
-      <div class="news-image">
-        <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
-      </div>
-      <div class="news-content">
-        <span class="news-source">${item.source} (${sourceHost})</span>
-        <h3 class="news-title">${item.title}</h3>
-        <p class="news-excerpt">${item.excerpt}</p>
-        <div class="news-meta">
-          <span>🕒 ${formatKST(item.publishedAt)}</span>
-          <span>${item.emoji || ''} 원문 보기</span>
-        </div>
-      </div>
-    </a>
-  `;
-}
+    function createCardHTML(item) {
+      const safeTitle = item.title.replace(/"/g, '&quot;');
+      const imageSrc = item.imageUrl || `https://via.placeholder.com/100`;
 
+      return `
+        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card" aria-label="기사로 이동: ${safeTitle}">
+          <div class="news-image">
+            <img src="${imageSrc}" alt="${safeTitle}" loading="lazy">
+          </div>
+          <div class="news-content">
+            <div class="news-source">${item.source}</div>
+            <h3 class="news-title">${item.title}</h3>
+            <p class="news-excerpt">${item.excerpt}</p>
+            <div class="news-meta">
+              <span>🕒 ${formatKST(item.publishedAt)}</span>
+              <span>${item.emoji || ''} 원문 보기</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }
 
     function updateLastUpdateTime() {
       const now = new Date().toLocaleString('ko-KR', {
@@ -127,4 +138,3 @@ function createCardHTML(item) {
   </script>
 </body>
 </html>
-
