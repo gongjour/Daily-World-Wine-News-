@@ -20,26 +20,23 @@ async function fetchWineNews() {
       const aTag = article.querySelector('a');
       const title = aTag?.text.trim() || "Untitled";
 
-      const href = aTag?.getAttribute('href');
-      const url = href && href.startsWith('http')
-        ? href
-        : (href ? `https://www.decanter.com${href}` : '');
+      let href = aTag?.getAttribute('href') || '';
+      if (!href.startsWith('http')) {
+        href = `https://www.decanter.com${href}`;
+      }
 
       const excerpt = article.querySelector('p')?.text.trim() || '';
-
-      // 이미지 src 또는 data-src 모두 확인
       const imgTag = article.querySelector('img');
       const image = imgTag?.getAttribute('data-src') ||
                     imgTag?.getAttribute('src') ||
                     `https://picsum.photos/seed/${i}/400/250`;
 
-      // Decanter는 날짜 정보를 직접 제공하지 않음 → 현재 시각으로 대체
       const publishedAt = new Date().toISOString();
 
       newsItems.push({
         title,
         excerpt,
-        url,
+        url: href,
         source: "Decanter",
         publishedAt,
         emoji: "🍷",
